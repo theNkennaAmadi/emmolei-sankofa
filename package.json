@@ -1,0 +1,21 @@
+{
+  "name": "emmolei-sankofa",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  },
+  "dependencies": {
+    "@barba/core": "^2.9.7",
+    "@studio-freight/lenis": "^1.0.42",
+    "gsap": "file:gsap-bonus.tgz",
+    "splitting": "^1.0.6",
+    "swiper": "^11.1.1"
+  }
+}
