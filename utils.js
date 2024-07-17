@@ -81,3 +81,28 @@ export class Nav{
         })
     }
 }
+
+export class Footer{
+    constructor(container) {
+        this.footer = container.querySelector('.footer');
+        this.donorLink = this.footer.querySelector('.donor-link')
+        this.patronClose = this.footer.querySelector('.patron-close');
+        this.init();
+    }
+    init(){
+        this.showDonorInfo()
+    }
+
+    showDonorInfo(){
+        let tlDonor = gsap.timeline({paused: true});
+        tlDonor.to('.patron-container', {display: 'block', duration: 0.5})
+             .from('.patron-content', {clipPath: 'inset(100%)', duration: 0.5}, "<")
+
+        this.donorLink.addEventListener('click', () => {
+             tlDonor.play();
+        });
+        this.patronClose.addEventListener('click', () => {
+            tlDonor.reverse();
+        })
+    }
+}

@@ -1,5 +1,6 @@
 import gsap from 'gsap';
 import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
+import {Home} from "./home.js";
 
 gsap.registerPlugin(ScrambleTextPlugin)
 
@@ -12,11 +13,14 @@ class Loader {
         this.loaderWrapper = document.querySelector(".preloader-wrapper");
         this.loadingDots = [...this.loaderWrapper.querySelectorAll('.loading-visual')]
         this.loadingTextWrapper = this.loaderWrapper.querySelector('.loading-text-wrapper')
+       // gsap.set(this.container, { position: "fixed", top: 0, left: 0, width: "100%", height:'100vh' });
         this.init()
-        this.addEventListeners()
     }
 
     init(){
+        //window.scroll(0,0)
+
+        gsap.set(['html', 'body'], {overflow: 'hidden'})
         this.animateDots();
     }
 
@@ -39,6 +43,9 @@ class Loader {
                 text: "CLICK TO ENTER",
                 chars: "O",
                 speed: 1,
+            },
+            onComplete: ()=>{
+                this.addEventListeners()
             }
         });
 
@@ -46,13 +53,22 @@ class Loader {
 
     addEventListeners(){
         this.loaderWrapper.addEventListener('click', () => {
-            this.tlReavealVisual.to(this.loadingDots[2], {height: '100%', scaleX: 0.5, ease: "expo.out"})
+            this.tlReavealVisual.to(this.loadingDots[2], {height: ()=> window.innerWidth > 478 ? '23.6rem' : '24.5rem', width:'18rem', aspectRatio:1, scaleX: 1, ease: "expo.out"})
             this.tlReavealVisual.from(".loading-visual-wrapper.home", {height: '100%', ease: "expo.out"})
             this.tlReavealVisual.to([this.loadingDots[0], this.loadingDots[1], this.loadingDots[3], this.loadingDots[4]], {height: '0%'}, "<")
             this.tlReavealVisual.to(this.loaderWrapper, {backgroundColor:'transparent',color: 'black'}, "<")
             this.tlReavealVisual.to(this.loadingTextWrapper, {opacity:0, duration: 0.3}, "<")
             this.tlReavealVisual.set(this.loaderWrapper, { display: 'none'}, ">")
             this.tlReavealVisual.fromTo('.loader-img',{scale:1.6, clipPath: 'circle(0% at 50% 50%)'}, {scale:1,clipPath: 'circle(80% at 50% 50%)', ease: "expo.out", duration: 2}, ">0.2")
+
+
+            setTimeout(()=>{
+                document.body.classList.remove('stop-scroll')
+                gsap.set(this.container, { position: "relative", height: "auto" });
+                gsap.set(['html', 'body'], {overflow: 'auto'})
+                new Home(document.querySelector('[data-barba-namespace="home"]'))
+            }, 2000)
+
         });
     }
 }

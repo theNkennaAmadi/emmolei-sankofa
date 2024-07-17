@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "vite --host --port 5177",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -14,8 +14,15 @@
   "dependencies": {
     "@barba/core": "^2.9.7",
     "@studio-freight/lenis": "^1.0.42",
+    "colorthief": "^2.4.0",
     "gsap": "file:gsap-bonus.tgz",
+    "howler": "^2.2.4",
+    "lenis": "^1.1.4",
+    "odometer": "^0.4.8",
+    "plyr": "^3.7.8",
     "splitting": "^1.0.6",
-    "swiper": "^11.1.1"
+    "swiper": "^11.1.1",
+    "three": "^0.165.0",
+    "youtube-player": "^5.6.0"
   }
 }
