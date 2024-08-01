@@ -9,7 +9,6 @@ export class Product {
       this.faqs = [...this.container.querySelectorAll(".sp-faq-content")];
       this.products = [...this.container.querySelectorAll('.merch-collection-item')];
       this.init();
-    console.log('product')
   }
 
   init() {

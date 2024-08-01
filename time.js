@@ -57,10 +57,10 @@ export default class Time {
         const currentYearItems = this.timeDetails.filter(item => item.date.getFullYear() === currentYear);
         const pastItems = this.timeDetails.filter(item => item.date < today && item.date.getFullYear() < currentYear);
 
-        const defaultImage = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66980aae24b1079be6088598_nothing%20(1).webp';
-        this.futureURL ='https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66980aae8571e1b46c07a916_future%20(1).webp'
-        this.presentURL = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66980aae4f652f0ccf9f5ea6_present%20(1).webp'
-        this.pastURL = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66980aae618cde95e2e61b63_past%20(1).webp'
+        const defaultImage = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/669809a3d62ea03f04364464_nothing.webp';
+        this.futureURL ='https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2b1434ac19b0be4ab_future.webp'
+        this.presentURL = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2fcef5c0a8e1b5d99_present.webp'
+        this.pastURL = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2550bde50549193c5_past.webp'
 
 
         return [
