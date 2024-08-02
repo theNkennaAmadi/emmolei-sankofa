@@ -146,8 +146,16 @@ barba.init({
         },
         {
             namespace: "404",
-            beforeEnter() {},
-        }
+            afterEnter() {},
+        },
+        {
+            namespace: "test",
+            afterEnter(data) {
+                console.log('test');
+                new Time(data.next.container);
+            },
+        },
+
     ],
     transitions: [
         {
