@@ -167,10 +167,8 @@ barba.init({
                     animation.kill();
                 });
                 ScrollTrigger.clearScrollMemory();
-
                 ScrollTrigger.getAll().forEach((t) => t.kill());
                 ScrollTrigger.refresh();
-
             },
             enter(data) {
                 const currentContainer = data.current.container;
