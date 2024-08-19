@@ -10,6 +10,7 @@ import {Music} from "./music.js";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import Time from "./time.js";
 import Lenis from 'lenis';
+import {Videos} from "./videos.js";
 
 const lenis = new Lenis({ smooth: true });
 const raf = (time) => {
@@ -104,6 +105,21 @@ barba.init({
             afterEnter(data) {
                 new Music(data.next.container);
                 new Nav(data.next.container);
+            },
+        },
+        {
+            namespace: "videos",
+            afterEnter(data) {
+                new Videos(data.next.container);
+                new Nav(data.next.container);
+            },
+        },
+        {
+            namespace: "film",
+            afterEnter(data) {
+                new Nav(data.next.container);
+                //new Music(data.next.container);
+
             },
         },
         {

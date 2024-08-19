@@ -9,6 +9,8 @@ export class Nav{
         this.navMobileMenu = this.header.querySelector('.nav-mobile-menu');
         this.navLinksWrapper = this.header.querySelector('.nav-links-wrapper');
         this.navLinks = [...this.navLinksWrapper.querySelectorAll('.nav-link')];
+        this.navDropWrapper = this.header.querySelector('.nav-link.drop');
+        this.navDropdown = this.header.querySelector('.nav-dropdown');
         this.init();
     }
     init(){
@@ -60,6 +62,16 @@ export class Nav{
                 tl.restart();
             });
         });
+
+        this.navDropWrapper.addEventListener('mouseenter', (e) => {
+            e.stopPropagation();
+            gsap.to(this.navDropdown, {display: 'flex', duration: 0.5})
+        });
+
+        this.navDropWrapper.addEventListener('mouseleave', (e) => {
+            e.stopPropagation();
+            gsap.to(this.navDropdown, {display: 'none', duration: 0.5})
+        })
 
     }
 

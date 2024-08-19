@@ -18,6 +18,7 @@
     "gsap": "file:gsap-bonus.tgz",
     "howler": "^2.2.4",
     "lenis": "^1.1.4",
+    "lottie-web": "^5.12.2",
     "odometer": "^0.4.8",
     "plyr": "^3.7.8",
     "splitting": "^1.0.6",
