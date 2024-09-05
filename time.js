@@ -20,7 +20,6 @@ CustomEase.create("cubic", ".83,0,.17,1");
 
 export default class Time {
     constructor(container, lenis) {
-
         this.container = container;
         this.lenis = lenis;
         this.timeBody = container.closest('body');
@@ -34,7 +33,7 @@ export default class Time {
         this.imagePlanes = [];
         this.totalHeight = 30;
         this.radius = 14;
-        console.log('Time')
+        console.log('This time is updated now')
         this.timeDetails = this.createTimeDetails();
 
         this.imageUrls = this.createImageUrls();
