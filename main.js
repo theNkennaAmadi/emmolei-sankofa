@@ -11,6 +11,7 @@ import {ScrollTrigger} from "gsap/ScrollTrigger";
 import Time from "./time.js";
 import Lenis from 'lenis';
 import {Videos} from "./videos.js";
+import {Film} from "./film.js";
 
 const lenis = new Lenis({ smooth: true });
 const raf = (time) => {
@@ -22,6 +23,23 @@ requestAnimationFrame(raf);
 gsap.config({
     nullTargetWarn: false,
 });
+
+function preloadImages(container) {
+    const images = container.querySelectorAll('img');
+    const imageUrls = Array.from(images).map(img => img.src);
+
+    return Promise.all(imageUrls.map(url => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(url);
+            img.onerror = () => {
+                console.warn(`Failed to load image: ${url}`);
+                resolve(null);
+            };
+            img.src = url;
+        });
+    }));
+}
 
 function resetWebflow(data) {
     const parser = new DOMParser();
@@ -39,25 +57,7 @@ function resetWebflow(data) {
     }
 }
 
-
 let firstLoad = true;
-
-
-barba.hooks.beforeLeave((data) => {
-    /*
-    gsap.getTweensOf("*").forEach((animation) => {
-        animation.revert();
-        animation.kill();
-    });
-    ScrollTrigger.clearScrollMemory();
-
-    ScrollTrigger.getAll().forEach((t) => t.kill());
-    ScrollTrigger.refresh();
-    //lenis.destroy();
-
-     */
-
-});
 
 barba.hooks.enter((data) => {
    gsap.set([data.next.container, data.current.container], { position: "fixed", top: 0, left: 0, width: "100%", height:'100vh' });
@@ -69,20 +69,10 @@ barba.hooks.after((data) => {
     resetWebflow(data);
     ScrollTrigger.refresh();
 });
-/*
-barba.hooks.afterEnter(() => {
 
-    gsap.getTweensOf("*").forEach((animation) => {
-        animation.revert();
-        animation.kill();
-    });
-    ScrollTrigger.clearScrollMemory();
 
-    ScrollTrigger.getAll().forEach((t) => t.kill());
-    ScrollTrigger.refresh();
-});
 
- */
+
 
 barba.init({
     preventRunning: true,
@@ -117,9 +107,8 @@ barba.init({
         {
             namespace: "film",
             afterEnter(data) {
+                new Film(data.next.container);
                 new Nav(data.next.container);
-                //new Music(data.next.container);
-
             },
         },
         {
@@ -186,13 +175,21 @@ barba.init({
                 ScrollTrigger.getAll().forEach((t) => t.kill());
                 ScrollTrigger.refresh();
             },
-            enter(data) {
+            async enter(data) {
                 const currentContainer = data.current.container;
                 const nextContainer = data.next.container;
                 let insetValue = '40%'
+                // Preload images from the next container
+                console.log('Starting image preload...');
+                await preloadImages(nextContainer);
+                console.log('Image preload complete.');
+
                 let tlTransition = gsap.timeline({defaults: {ease: "expo.inOut", onComplete: () => {
                     ScrollTrigger.refresh();
                 }}});
+                if (!firstLoad) {
+                    gsap.set('.preloader-wrapper', {opacity: 0})
+                }
                 tlTransition.set(nextContainer, {clipPath: `inset(${insetValue})`, xPercent: 120})
                     .set([currentContainer.querySelector(".section-transition"),nextContainer.querySelector(".section-transition")], {scale: 1, duration: 0.3})
                     .to(currentContainer, {clipPath: `inset(${insetValue})`, duration: 1})

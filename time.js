@@ -4,11 +4,13 @@ import {ScrollTrigger} from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import {ScrollToPlugin} from "gsap/ScrollToPlugin";
 import CustomEase from "gsap/CustomEase";
+
+
 // import Swiper bundle with all modules installed
-import Swiper from 'swiper/bundle';
+//import Swiper from 'swiper/bundle';
 
 // import styles bundle
-import 'swiper/css/bundle';
+//import 'swiper/css/bundle';
 
 
 gsap.registerPlugin(ScrollToPlugin);
@@ -18,18 +20,23 @@ CustomEase.create("cubic", ".83,0,.17,1");
 
 export default class Time {
     constructor(container, lenis) {
+
         this.container = container;
         this.lenis = lenis;
         this.timeBody = container.closest('body');
         this.canvasContainer = container.querySelector('.canvas-container');
+
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.buttons = container.querySelectorAll('.t-button');
+
         this.imagePlanes = [];
         this.totalHeight = 30;
         this.radius = 14;
+        console.log('Time')
         this.timeDetails = this.createTimeDetails();
+
         this.imageUrls = this.createImageUrls();
         this.spacing = this.imageUrls.length * (2.4 / this.imageUrls.length);
         this.futureButton = this.container.querySelector('#futureBtn');
@@ -40,11 +47,22 @@ export default class Time {
 
     createTimeDetails() {
         const timeItems = this.container.querySelectorAll('.time-item');
+        const placeholderSrc = 'https://cdn.prod.website-files.com/plugins/Basic/assets/placeholder.60f9b1840c.svg';
+        const defaultImage = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/669809a3d62ea03f04364464_nothing.webp';
+
         return Array.from(timeItems).map(item => {
+            const imgElement = item.querySelector('.time-main-img');
+            let imgSrc = imgElement?.src;
+
+            // Check if the image is the placeholder SVG
+            if (imgSrc === placeholderSrc) {
+                imgSrc = defaultImage;
+            }
+
             return {
                 name: item.getAttribute('data-name'),
                 date: new Date(item.getAttribute('data-date')),
-                url: item.querySelector('.time-images-item img').src
+                url: imgSrc || defaultImage
             };
         });
     }
@@ -80,8 +98,9 @@ export default class Time {
         this.setupCamera();
         this.setupResizeListener();
         this.setupButtonListeners();
-        this.initSwiper();
+        //this.initSwiper();
         this.setupRaycaster();
+
 
         gsap.to(this.buttons, {opacity: 1, duration: 1.25, ease: 'expo.in'});
         gsap.fromTo('.sm-dot', {opacity: 0, yPercent: 50}, {opacity: 1, yPercent: 0, duration: 1, stagger: {
@@ -108,6 +127,7 @@ export default class Time {
                     texture.minFilter = THREE.LinearFilter;
                     texture.magFilter = THREE.LinearFilter;
                     texture.format = THREE.RGBAFormat;
+                    texture.generateMipmaps = false;
                     resolve(texture);
                 });
             });
@@ -151,6 +171,7 @@ export default class Time {
     getYearFromUrl(index) {
         const item = this.timeDetails[index]
         return item ? item.date.getFullYear() : null;
+
     }
 
     setupCamera() {
@@ -208,6 +229,7 @@ export default class Time {
         let lastLoggedYear = null;
         const today = new Date();
         document.querySelector('.time-year').textContent = `${today.getFullYear()}`;
+        console.log('Setting up scroll animation');
 
         gsap.to('.time-year', { duration: 0.5, opacity: 1, ease: 'expo.in' });
 
@@ -269,7 +291,7 @@ export default class Time {
         this.pastButton.addEventListener('click', () => this.scrollToImage(this.imageUrls.indexOf(this.pastURL)));
         let tlHide = gsap.timeline({paused: true});
         tlHide.to(`.time-item`, {opacity: 0, duration: 1, zIndex: 1, ease: 'expo.out'})
-            .to('.time-main-wrapper', {clipPath: 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)', duration: 1, ease: 'expo.in'}, "<")
+            .to('.time-main-wrapper', {clipPath: 'inset(100% 0% 0% 0%)', duration: 0.6, ease: 'expo.in'}, "<")
         document.querySelector('.time-back-btn').addEventListener('click', () => {
             tlHide.restart()
            this.lenis.start()
@@ -343,7 +365,7 @@ export default class Time {
                       //  console.log('Clicked:', name);
                         let tlShow = gsap.timeline();
                         tlShow.to(`[data-name='${CSS.escape(name)}']`, {opacity: 1, zIndex: 3, duration: 0.5, ease: 'expo.out'})
-                            .to('.time-main-wrapper', {clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", duration: 1, ease: 'expo.out'}, "<")
+                            .to('.time-main-wrapper', {clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: 'expo.out'}, "<")
                         this.lenis.stop()
                     } else {
                         //console.log('Hovered:', name);

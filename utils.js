@@ -9,7 +9,8 @@ export class Nav{
         this.navMobileMenu = this.header.querySelector('.nav-mobile-menu');
         this.navLinksWrapper = this.header.querySelector('.nav-links-wrapper');
         this.navLinks = [...this.navLinksWrapper.querySelectorAll('.nav-link')];
-        this.navDropWrapper = this.header.querySelector('.nav-link.drop');
+        this.navDropWrapper = this.header.querySelector('.nav-link-container');
+        this.navDropLink = this.header.querySelector('.nav-link.drop');
         this.navDropdown = this.header.querySelector('.nav-dropdown');
         this.init();
     }
@@ -63,14 +64,36 @@ export class Nav{
             });
         });
 
+
+        const pageWrapper = this.header.closest('.page-wrapper');
+
         this.navDropWrapper.addEventListener('mouseenter', (e) => {
-            e.stopPropagation();
-            gsap.to(this.navDropdown, {display: 'flex', duration: 0.5})
+            this.tlNavC = gsap.timeline({paused: true});
+            // Get the computed styles of the element
+            const computedStyles = window.getComputedStyle(pageWrapper);
+            let textColor = computedStyles.color;
+            let backgroundColor = computedStyles.backgroundColor;
+            if( backgroundColor === 'rgba(0, 0, 0, 0)') {
+                backgroundColor = window.getComputedStyle(document.querySelector('body')).backgroundColor;
+            }
+            if(backgroundColor === textColor){
+                backgroundColor = '#0b8457';
+            }
+
+            this.tlNavC.to(this.navDropLink, {backgroundColor: textColor, color: backgroundColor, duration: 0.2, ease: 'expo.out'})
+                .to(this.navDropdown, { backgroundColor: textColor, color: backgroundColor, duration: 0.5, ease: 'expo.out'}, "<")
+                .to(this.navDropdown, {clipPath: 'inset(0% 0% 0% 0%)', duration: 1, ease: 'expo.out'}, "<0.3")
+
+            this.tlNavC.play();
+
         });
 
         this.navDropWrapper.addEventListener('mouseleave', (e) => {
-            e.stopPropagation();
-            gsap.to(this.navDropdown, {display: 'none', duration: 0.5})
+            //gsap.to(this.navDropdown, {display: 'none', duration: 0.5})
+            this.tlNavC.reverse().then(() => {
+                gsap.to(this.navDropLink, {color: 'inherit', delay: 0.5});
+            });
+            //gsap.to(this.navDropLink, {color: 'inherit', delay: 0.5});
         })
 
     }
@@ -118,3 +141,5 @@ export class Footer{
         })
     }
 }
+
+

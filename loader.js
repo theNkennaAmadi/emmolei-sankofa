@@ -13,7 +13,6 @@ class Loader {
         this.loaderWrapper = document.querySelector(".preloader-wrapper");
         this.loadingDots = [...this.loaderWrapper.querySelectorAll('.loading-visual')]
         this.loadingTextWrapper = this.loaderWrapper.querySelector('.loading-text-wrapper')
-       // gsap.set(this.container, { position: "fixed", top: 0, left: 0, width: "100%", height:'100vh' });
         this.init()
     }
 

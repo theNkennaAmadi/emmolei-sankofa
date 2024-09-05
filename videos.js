@@ -6,7 +6,8 @@ export class Videos {
         this.container = container;
         this.apiKey = 'AIzaSyALqidJRST-mo-pMbtXZit-GOtfB6j0pb0';
         this.videoItems = [...this.container.querySelectorAll('.videos-item')];
-        this.playlistIds = this.videoItems.map((item) => item.getAttribute('data-playlist-id'));
+        this.playlistIds = this.videoItems.map((item) => this.getYouTubePlaylistId(item.getAttribute('data-playlist-id')));
+        console.log(this.playlistIds);
         this.videoListWrapper = this.container.querySelector('.videos-list-wrapper');
         this.videoContentContainer = this.container.querySelector('.videos-c');
         this.videoContentGrid = this.container.querySelector('.videos-content-grid');
@@ -23,11 +24,20 @@ export class Videos {
 
     }
 
+    getYouTubePlaylistId(url) {
+        // Create a URL object from the input string
+        const urlObj = new URL(url);
+        // Use URLSearchParams to get the value of the 'list' parameter
+        const playlistId = urlObj.searchParams.get('list');
+        // Return the playlist ID if it exists, otherwise return null
+        return playlistId ? playlistId : null;
+    }
+
     async init() {
         try {
             for (const [index, playlistId] of this.playlistIds.entries()) {
                 const playlistVideos = await this.fetchPlaylistVideos(playlistId);
-                console.log(playlistVideos);
+               // console.log(playlistVideos);
                 this.renderVideos(playlistVideos, this.videoItems[index]);
             }
         } catch (error) {

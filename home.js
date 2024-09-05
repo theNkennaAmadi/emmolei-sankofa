@@ -69,7 +69,7 @@ export class Home {
         // Calculate the brightness of the color
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
         // Return white for dark colors and black for light colors
-        console.log(brightness)
+        //console.log(brightness)
         return brightness > 132 ? '#0b0d71' : '#EFE4CF';
     }
 
