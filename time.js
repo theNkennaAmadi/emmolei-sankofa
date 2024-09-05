@@ -5,18 +5,9 @@ import Lenis from 'lenis';
 import {ScrollToPlugin} from "gsap/ScrollToPlugin";
 import CustomEase from "gsap/CustomEase";
 
-
-// import Swiper bundle with all modules installed
-//import Swiper from 'swiper/bundle';
-
-// import styles bundle
-//import 'swiper/css/bundle';
-
-
 gsap.registerPlugin(ScrollToPlugin);
 gsap.registerPlugin(ScrollTrigger);
 CustomEase.create("cubic", ".83,0,.17,1");
-
 
 export default class Time {
     constructor(container, lenis) {
@@ -33,11 +24,9 @@ export default class Time {
         this.imagePlanes = [];
         this.totalHeight = 30;
         this.radius = 14;
-        console.log('This time is updated now')
         this.timeDetails = this.createTimeDetails();
-
-        this.imageUrls = this.createImageUrls();
-        this.spacing = this.imageUrls.length * (2.4 / this.imageUrls.length);
+        this.imageData = this.createImageData();
+        this.spacing = this.imageData.length * (2.4 / this.imageData.length);
         this.futureButton = this.container.querySelector('#futureBtn');
         this.presentButton = this.container.querySelector('#presentBtn');
         this.pastButton = this.container.querySelector('#pastBtn');
@@ -49,11 +38,10 @@ export default class Time {
         const placeholderSrc = 'https://cdn.prod.website-files.com/plugins/Basic/assets/placeholder.60f9b1840c.svg';
         const defaultImage = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/669809a3d62ea03f04364464_nothing.webp';
 
-        return Array.from(timeItems).map(item => {
+        return Array.from(timeItems).map((item, index) => {
             const imgElement = item.querySelector('.time-main-img');
             let imgSrc = imgElement?.src;
 
-            // Check if the image is the placeholder SVG
             if (imgSrc === placeholderSrc) {
                 imgSrc = defaultImage;
             }
@@ -61,12 +49,13 @@ export default class Time {
             return {
                 name: item.getAttribute('data-name'),
                 date: new Date(item.getAttribute('data-date')),
-                url: imgSrc || defaultImage
+                url: imgSrc || defaultImage,
+                id: `${index}-${item.getAttribute('data-name')}`
             };
         });
     }
 
-    createImageUrls() {
+    createImageData() {
         const today = new Date();
         const currentYear = today.getFullYear();
 
@@ -74,32 +63,29 @@ export default class Time {
         const currentYearItems = this.timeDetails.filter(item => item.date.getFullYear() === currentYear);
         const pastItems = this.timeDetails.filter(item => item.date < today && item.date.getFullYear() < currentYear);
 
-        const defaultImage = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/669809a3d62ea03f04364464_nothing.webp';
-        this.futureURL ='https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2b1434ac19b0be4ab_future.webp'
-        this.presentURL = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2fcef5c0a8e1b5d99_present.webp'
-        this.pastURL = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2550bde50549193c5_past.webp'
-
+        this.defaultImage = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/669809a3d62ea03f04364464_nothing.webp';
+        this.futureURL = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2b1434ac19b0be4ab_future.webp';
+        this.presentURL = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2fcef5c0a8e1b5d99_present.webp';
+        this.pastURL = 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2550bde50549193c5_past.webp';
 
         return [
-            this.futureURL,
-            ...(futureItems.length > 0 ? futureItems.map(item => item.url) : [defaultImage]),
-            this.presentURL,
-            ...(currentYearItems.length > 0 ? currentYearItems.map(item => item.url) : [defaultImage]),
-            this.pastURL,
-            ...pastItems.map(item => item.url)
+            { id: 'future', url: this.futureURL },
+            ...(futureItems.length > 0 ? futureItems : [{ id: 'default-future', url: this.defaultImage }]),
+            { id: 'present', url: this.presentURL },
+            ...(currentYearItems.length > 0 ? currentYearItems : [{ id: 'default-present', url: this.defaultImage }]),
+            { id: 'past', url: this.pastURL },
+            ...(pastItems.length > 0 ? pastItems : [{ id: 'default-past', url: this.defaultImage }]),
         ];
     }
 
     init() {
         gsap.fromTo(this.canvasContainer, {opacity: 0}, {opacity: 1, duration: 1, ease: 'expo.in'});
         this.setupRenderer();
-        this.createImagePlanes(); // This is now asynchronous
+        this.createImagePlanes();
         this.setupCamera();
         this.setupResizeListener();
         this.setupButtonListeners();
-        //this.initSwiper();
         this.setupRaycaster();
-
 
         gsap.to(this.buttons, {opacity: 1, duration: 1.25, ease: 'expo.in'});
         gsap.fromTo('.sm-dot', {opacity: 0, yPercent: 50}, {opacity: 1, yPercent: 0, duration: 1, stagger: {
@@ -110,38 +96,43 @@ export default class Time {
         this.animate();
     }
 
-
     setupRenderer() {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setClearColor(0xffffff, 0);
         this.canvasContainer.appendChild(this.renderer.domElement);
     }
 
     createImagePlanes() {
         const textureLoader = new THREE.TextureLoader();
-        const loadTexture = (url) => {
+        const loadTexture = (imageData) => {
             return new Promise((resolve) => {
-                textureLoader.load(url, (texture) => {
+                textureLoader.load(imageData.url, (texture) => {
                     texture.colorSpace = THREE.SRGBColorSpace;
                     texture.minFilter = THREE.LinearFilter;
                     texture.magFilter = THREE.LinearFilter;
                     texture.format = THREE.RGBAFormat;
                     texture.generateMipmaps = false;
-                    resolve(texture);
+                    resolve({ texture, imageData });
                 });
             });
         };
 
-        const createPlane = (texture, index, url) => {
+        const createPlane = ({ texture, imageData }, index) => {
             const imageAspect = texture.image.width / texture.image.height;
-
             const planeHeight = 2.5;
-            const planeWidth = planeHeight * imageAspect; // Base width
+            const planeWidth = planeHeight * imageAspect;
 
-            const trans = url === this.futureURL || url === this.presentURL || url === this.pastURL;
+            const trans = ['future', 'present', 'past'].includes(imageData.id);
             const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: trans });
             const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
             const mesh = new THREE.Mesh(geometry, material);
+
+            mesh.userData = {
+                id: imageData.id,
+                date: imageData.date,
+                name: imageData.name
+            };
 
             const yPos = index * this.spacing;
             mesh.position.set(
@@ -155,22 +146,14 @@ export default class Time {
             this.imagePlanes.push(mesh);
         };
 
-        // Load all textures and create planes
-        Promise.all(this.imageUrls.map(loadTexture))
-            .then((textures) => {
-                textures.forEach((texture, index) => {
-                    createPlane(texture, index, this.imageUrls[index]);
+        Promise.all(this.imageData.map(loadTexture))
+            .then((texturesWithData) => {
+                texturesWithData.forEach((item, index) => {
+                    createPlane(item, index);
                 });
-                // After all planes are created, set up initial positions and animations
                 this.setupInitialPositions();
                 this.animateInitialPositions();
             });
-    }
-
-    getYearFromUrl(index) {
-        const item = this.timeDetails[index]
-        return item ? item.date.getFullYear() : null;
-
     }
 
     setupCamera() {
@@ -224,11 +207,10 @@ export default class Time {
     }
 
     setupScrollAnimation() {
-        const totalLength = this.imageUrls.length * 10;
+        const totalLength = this.imageData.length * 10;
         let lastLoggedYear = null;
         const today = new Date();
-        document.querySelector('.time-year').textContent = `${today.getFullYear()}`;
-        console.log('Setting up scroll animation');
+        this.container.querySelector('.time-year').textContent = `${today.getFullYear()}`;
 
         gsap.to('.time-year', { duration: 0.5, opacity: 1, ease: 'expo.in' });
 
@@ -247,19 +229,19 @@ export default class Time {
 
                 if (centerIndex >= 0 && centerIndex < this.imagePlanes.length) {
                     const centerPlane = this.imagePlanes[centerIndex];
-                    const centerUrl = centerPlane.material.map.image.src;
-                    const year = this.getYearFromUrl(centerIndex);
+                    const { date, name } = centerPlane.userData;
 
-                    if (year && year !== lastLoggedYear) {
-                        //console.log(`Year: ${year}`);
-                        //odometer.update(year);
-                        document.querySelector('.time-year').textContent = year;
-                        lastLoggedYear = year;
-                    } else if (!year && ['future', 'present', 'past'].some(word => centerUrl.includes(word))) {
-                       // console.log(centerUrl.split('/').pop().split('.')[0].toUpperCase());
-                        lastLoggedYear = null;
+                    if (name !== 'Default') {
+                        if (date && date.getFullYear() !== lastLoggedYear) {
+                            this.container.querySelector('.time-year').textContent = date.getFullYear();
+                            lastLoggedYear = date.getFullYear();
+                        } else if (['Future', 'Present', 'Past'].includes(name)) {
+                            this.container.querySelector('.time-year').textContent = name.toUpperCase();
+                            lastLoggedYear = null;
+                        }
                     }
                 }
+
                 this.imagePlanes.forEach((plane, index) => {
                     const yPos = index * this.spacing - scrollY;
                     plane.position.y = yPos;
@@ -285,43 +267,34 @@ export default class Time {
     }
 
     setupButtonListeners() {
-        this.futureButton.addEventListener('click', () => this.scrollToImage(0));
-        this.presentButton.addEventListener('click', () => this.scrollToImage(this.imageUrls.indexOf(this.presentURL)));
-        this.pastButton.addEventListener('click', () => this.scrollToImage(this.imageUrls.indexOf(this.pastURL)));
-        let tlHide = gsap.timeline({paused: true});
-        tlHide.to(`.time-item`, {opacity: 0, duration: 1, zIndex: 1, ease: 'expo.out'})
-            .to('.time-main-wrapper', {clipPath: 'inset(100% 0% 0% 0%)', duration: 0.6, ease: 'expo.in'}, "<")
-        document.querySelector('.time-back-btn').addEventListener('click', () => {
-            tlHide.restart()
-           this.lenis.start()
+        this.futureButton.addEventListener('click', () => this.scrollToImage('future'));
+        this.presentButton.addEventListener('click', () => this.scrollToImage('present'));
+        this.pastButton.addEventListener('click', () => this.scrollToImage('past'));
+        this.container.querySelector('.time-back-btn').addEventListener('click', () => {
+            this.tlShow.reverse()
+            this.lenis.start()
         });
     }
 
-    scrollToImage(index) {
-        const yPos = index * this.spacing;
-        const newScrollPosition = (yPos * window.innerHeight / this.totalHeight);
-        const currentScrollPosition = window.scrollY;
-        gsap.fromTo(window, {
-            scrollTo: { y: currentScrollPosition },
-        },{
-            duration: 2,
-            scrollTo: { y: newScrollPosition },
-            ease: "power2",
-        });
+    scrollToImage(id) {
+        const index = this.imagePlanes.findIndex(plane => plane.userData.id === id);
+        if (index !== -1) {
+            const yPos = index * this.spacing;
+            const newScrollPosition = (yPos * window.innerHeight / this.totalHeight);
+            const currentScrollPosition = window.scrollY;
+            gsap.fromTo(window, {
+                scrollTo: { y: currentScrollPosition },
+            }, {
+                duration: 2,
+                scrollTo: { y: newScrollPosition },
+                ease: "power2",
+            });
+        }
     }
 
     animate() {
         requestAnimationFrame(this.animate.bind(this));
         this.renderer.render(this.scene, this.camera);
-    }
-
-    initSwiper() {
-        const swiper = new Swiper(".swiper", {
-            slidesPerView: "auto",
-            spaceBetween: 24,
-            loop: true,
-            centeredSlides: true,
-        });
     }
 
     setupRaycaster() {
@@ -345,6 +318,7 @@ export default class Time {
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         this.checkIntersection(true);
     }
+
     checkIntersection(isClick = false) {
         this.raycaster.setFromCamera(this.mouse, this.camera);
         const intersects = this.raycaster.intersectObjects(this.imagePlanes);
@@ -359,16 +333,17 @@ export default class Time {
             for (let intersect of intersects) {
                 const plane = intersect.object;
                 if (plane.material.opacity > 0.1) {  // Consider planes with opacity > 0.1 as visible
-                    const name = this.getNameFromPlane(plane);
+                    const { id, name } = plane.userData;
+                    console.log(name)
                     if (isClick) {
-                      //  console.log('Clicked:', name);
-                        let tlShow = gsap.timeline();
-                        tlShow.to(`[data-name='${CSS.escape(name)}']`, {opacity: 1, zIndex: 3, duration: 0.5, ease: 'expo.out'})
-                            .to('.time-main-wrapper', {clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: 'expo.out'}, "<")
-                        this.lenis.stop()
+                        if(name && name !== 'Default') {
+                            this.tlShow = gsap.timeline();
+                            this.tlShow.to(`[data-name='${CSS.escape(name)}']`, {display: 'grid', zIndex: 3, duration: 0.5, ease: 'expo.out'})
+                                .to('.time-main-wrapper', {clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: 'expo.out'}, "<")
+                            this.lenis.stop()
+                        }
                     } else {
-                        //console.log('Hovered:', name);
-                        if (name !== 'Future' && name !== 'Present' && name !== 'Past' && name !== 'Unknown') {
+                        if (!['future', 'present', 'past', 'default-future', 'default-present', 'default-past'].includes(id)) {
                             gsap.to(this.container, {cursor: 'pointer', duration: 0.1});
                             hoveredOverSpecialImage = true;
                         }
@@ -381,23 +356,6 @@ export default class Time {
         if (!hoveredOverSpecialImage) {
             gsap.to(this.container, {cursor: 'default', duration: 0.1});
         }
-    }
-
-    getNameFromPlane(plane) {
-        const index = this.imagePlanes.indexOf(plane);
-        return this.getNameFromUrl(index);
-    }
-
-    getNameFromUrl(index) {
-        if (index < 0 || index >= this.imageUrls.length) return 'Unknown';
-
-        const url = this.imageUrls[index];
-        if (url.includes(this.futureURL)) return 'Future';
-        if (url.includes(this.presentURL)) return 'Present';
-        if (url.includes(this.pastURL)) return 'Past';
-
-        const item = this.timeDetails.find(detail => detail.url === url);
-        return item ? item.name : 'Unknown';
     }
 }
 
