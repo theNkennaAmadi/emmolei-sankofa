@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import Splitting from "splitting";
+let mm = gsap.matchMedia();
 
 export class Nav{
     constructor(header) {
@@ -18,11 +19,14 @@ export class Nav{
         this.initSplitting();
         this.hoverAnimation();
         this.showNavMobile();
+        let bgCol = window.getComputedStyle(this.header).backgroundColor;
+        gsap.set('.nav-links-wrapper', {backgroundColor: bgCol});
     }
     initSplitting() {
         //Initialize Splitting, split the text into characters and get the results
         const targets = [...this.header.querySelectorAll(".nav-link-text")];
         const results = Splitting({ target: targets, by: "chars" });
+
 
         //Get all the words and wrap each word in a span
         let words = this.header.querySelectorAll(".word");
@@ -67,34 +71,42 @@ export class Nav{
 
         const pageWrapper = this.header.closest('.page-wrapper');
 
-        this.navDropWrapper.addEventListener('mouseenter', (e) => {
-            this.tlNavC = gsap.timeline({paused: true});
-            // Get the computed styles of the element
-            const computedStyles = window.getComputedStyle(pageWrapper);
-            let textColor = computedStyles.color;
-            let backgroundColor = computedStyles.backgroundColor;
-            if( backgroundColor === 'rgba(0, 0, 0, 0)') {
-                backgroundColor = window.getComputedStyle(document.querySelector('body')).backgroundColor;
-            }
-            if(backgroundColor === textColor){
-                backgroundColor = '#0b8457';
-            }
+        mm.add("(min-width: 480px)", () => {
+            let tlNavC;
 
-            this.tlNavC.to(this.navDropLink, {backgroundColor: textColor, color: backgroundColor, duration: 0.2, ease: 'expo.out'})
-                .to(this.navDropdown, { backgroundColor: textColor, color: backgroundColor, duration: 0.5, ease: 'expo.out'}, "<")
-                .to(this.navDropdown, {clipPath: 'inset(0% 0% 0% 0%)', duration: 1, ease: 'expo.out'}, "<0.3")
+            const initializeTimeline = () => {
+                const computedStyles = window.getComputedStyle(pageWrapper);
+                let textColor = computedStyles.color;
+                let backgroundColor = computedStyles.backgroundColor;
+                if (backgroundColor === 'rgba(0, 0, 0, 0)') {
+                    backgroundColor = window.getComputedStyle(document.querySelector('body')).backgroundColor;
+                }
+                if (backgroundColor === textColor) {
+                    backgroundColor = '#0b8457';
+                }
 
-            this.tlNavC.play();
+                tlNavC = gsap.timeline({ paused: true })
+                    .fromTo(this.navDropLink, { color: 'inherit' }, { backgroundColor: textColor, color: backgroundColor, duration: 0.2, ease: 'expo.out' })
+                    .fromTo(this.navDropdown, { backgroundColor: 'transparent', color: textColor }, { backgroundColor: textColor, color: backgroundColor, duration: 0.5, ease: 'expo.out' }, "<")
+                    .fromTo(this.navDropdown, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1, ease: 'expo.out' }, "<0.2");
+            };
 
+            initializeTimeline();
+
+            this.navDropWrapper.addEventListener('mouseenter', () => {
+                tlNavC.play();
+            });
+
+            this.navDropWrapper.addEventListener('mouseleave', () => {
+                tlNavC.reverse();
+            });
+
+            // Ensure animation completes
+            tlNavC.eventCallback("onReverseComplete", () => {
+                gsap.set([this.navDropLink, this.navDropdown], { clearProps: "all" });
+            });
         });
 
-        this.navDropWrapper.addEventListener('mouseleave', (e) => {
-            //gsap.to(this.navDropdown, {display: 'none', duration: 0.5})
-            this.tlNavC.reverse().then(() => {
-                gsap.to(this.navDropLink, {color: 'inherit', delay: 0.5});
-            });
-            //gsap.to(this.navDropLink, {color: 'inherit', delay: 0.5});
-        })
 
     }
 

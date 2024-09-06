@@ -72,6 +72,8 @@ export class Music {
         const totalCards = cards.length;
         const visibleCards = this.visibleCardsCount;
 
+        gsap.set(this.slider, {opacity: 1})
+
         gsap.to(cards, {
             y: (i) => {
                 if (i >= totalCards - visibleCards) {
