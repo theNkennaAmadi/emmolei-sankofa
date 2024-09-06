@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import {gsap} from 'gsap';
 import {ScrollTrigger} from 'gsap/ScrollTrigger';
-import Lenis from 'lenis';
 import {ScrollToPlugin} from "gsap/ScrollToPlugin";
 import CustomEase from "gsap/CustomEase";
+import * as htmx from "htmx.org";
 
 gsap.registerPlugin(ScrollToPlugin);
 gsap.registerPlugin(ScrollTrigger);
@@ -20,6 +20,7 @@ export default class Time {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.buttons = container.querySelectorAll('.t-button');
+        this.timeItems = document.querySelectorAll('.time-item');
 
         this.imagePlanes = [];
         this.totalHeight = 30;
@@ -94,6 +95,24 @@ export default class Time {
             }, ease: 'expo.in', delay: 0.5});
 
         this.animate();
+
+        this.timeItems.forEach(item => {
+            this.setupHtmx(item);
+        });
+    }
+
+    setupHtmx(item) {
+        const slug = item.getAttribute('data-slug');
+        const contentBlock = item.querySelector('.time-content-block');
+
+        if (!slug || !contentBlock) return;
+
+        contentBlock.setAttribute('hx-get', `/time/${slug}`);
+        contentBlock.setAttribute('hx-trigger', 'load');
+        contentBlock.setAttribute('hx-target', 'this');
+        contentBlock.setAttribute('hx-select', `.time-vis-list`);
+        contentBlock.setAttribute('hx-swap', 'outerHTML');
+        htmx.process(contentBlock);
     }
 
     setupRenderer() {

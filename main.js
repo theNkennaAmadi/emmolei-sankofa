@@ -180,9 +180,9 @@ barba.init({
                 const nextContainer = data.next.container;
                 let insetValue = '40%'
                 // Preload images from the next container
-                console.log('Starting image preload...');
-                await preloadImages(nextContainer);
-                console.log('Image preload complete.');
+                //console.log('Starting image preload...');
+                //await preloadImages(nextContainer);
+                //console.log('Image preload complete.');
 
                 let tlTransition = gsap.timeline({defaults: {ease: "expo.inOut", onComplete: () => {
                     ScrollTrigger.refresh();
