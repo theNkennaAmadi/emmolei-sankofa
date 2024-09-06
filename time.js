@@ -99,6 +99,8 @@ export default class Time {
         this.timeItems.forEach(item => {
             this.setupHtmx(item);
         });
+
+        this.initializeVideoEmbeds();
     }
 
     setupHtmx(item) {
@@ -291,7 +293,52 @@ export default class Time {
         this.pastButton.addEventListener('click', () => this.scrollToImage('past'));
         this.container.querySelector('.time-back-btn').addEventListener('click', () => {
             this.tlShow.reverse()
+            this.stopAllVideos();
             this.lenis.start()
+        });
+    }
+
+    initializeVideoEmbeds() {
+        // Initialize YouTube iframes
+        const youtubeIframes = this.container.querySelectorAll('iframe[src*="youtube.com"]');
+        youtubeIframes.forEach(iframe => {
+            let src = new URL(iframe.src);
+            if (!src.searchParams.has('enablejsapi')) {
+                src.searchParams.append('enablejsapi', '1');
+                iframe.src = src.toString();
+            }
+        });
+
+        // Initialize Vimeo iframes
+        const vimeoIframes = this.container.querySelectorAll('iframe[src*="vimeo.com"]');
+        vimeoIframes.forEach(iframe => {
+            let src = new URL(iframe.src);
+            if (!src.searchParams.has('api')) {
+                src.searchParams.append('api', '1');
+                iframe.src = src.toString();
+            }
+        });
+    }
+
+    stopAllVideos() {
+        // Stop HTML5 video elements
+        const videoElements = this.container.querySelectorAll('video');
+        videoElements.forEach(video => {
+            video.pause();
+            video.currentTime = 0;
+        });
+
+        // Stop YouTube iframes
+        const youtubeIframes = this.container.querySelectorAll('iframe[src*="youtube.com"]');
+        console.log(youtubeIframes)
+        youtubeIframes.forEach(iframe => {
+            iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        });
+
+        // Stop Vimeo iframes
+        const vimeoIframes = this.container.querySelectorAll('iframe[src*="vimeo.com"]');
+        vimeoIframes.forEach(iframe => {
+            iframe.contentWindow.postMessage('{"method":"pause"}', '*');
         });
     }
 

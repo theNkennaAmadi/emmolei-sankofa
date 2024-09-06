@@ -20,7 +20,10 @@ export class Nav{
         this.hoverAnimation();
         this.showNavMobile();
         let bgCol = window.getComputedStyle(this.header).backgroundColor;
-        gsap.set('.nav-links-wrapper', {backgroundColor: bgCol});
+        mm.add("(max-width: 479px)", () => {
+            gsap.set('.nav-links-wrapper', {backgroundColor: bgCol});
+        });
+
     }
     initSplitting() {
         //Initialize Splitting, split the text into characters and get the results
