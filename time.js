@@ -5,8 +5,7 @@ import {ScrollToPlugin} from "gsap/ScrollToPlugin";
 import CustomEase from "gsap/CustomEase";
 import * as htmx from "htmx.org";
 
-gsap.registerPlugin(ScrollToPlugin);
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollToPlugin, CustomEase, ScrollTrigger);
 CustomEase.create("cubic", ".83,0,.17,1");
 
 export default class Time {
@@ -31,8 +30,13 @@ export default class Time {
         this.futureButton = this.container.querySelector('#futureBtn');
         this.presentButton = this.container.querySelector('#presentBtn');
         this.pastButton = this.container.querySelector('#pastBtn');
+
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+
         this.init();
     }
+
 
     createTimeDetails() {
         const timeItems = this.container.querySelectorAll('.time-item');
@@ -167,15 +171,14 @@ export default class Time {
             this.imagePlanes.push(mesh);
         };
 
-        Promise.all(this.imageData.map(loadTexture))
+        return Promise.all(this.imageData.map(loadTexture))
             .then((texturesWithData) => {
-                texturesWithData.forEach((item, index) => {
-                    createPlane(item, index);
-                });
+                texturesWithData.forEach((item, index) => createPlane(item, index));
                 this.setupInitialPositions();
                 this.animateInitialPositions();
             });
     }
+
 
     setupCamera() {
         this.camera.position.set(0, 0, 20);
@@ -231,51 +234,51 @@ export default class Time {
         const totalLength = this.imageData.length * 10;
         let lastLoggedYear = null;
         const today = new Date();
-        this.container.querySelector('.time-year').textContent = `${today.getFullYear()}`;
+        const yearElement = this.container.querySelector('.time-year');
+        yearElement.textContent = `${today.getFullYear()}`;
 
-        gsap.to('.time-year', { duration: 0.5, opacity: 1, ease: 'expo.in' });
+        gsap.to(yearElement, { duration: 0.5, opacity: 1, ease: 'expo.in' });
 
-        gsap.to(this.imagePlanes, {
-            duration: 1,
-            scrollTrigger: {
-                trigger: this.timeBody,
-                start: 'top top',
-                end: `+=${totalLength}%`,
-                scrub: true,
-                pin: true,
-            },
-            onUpdate: () => {
-                const scrollY = window.scrollY / window.innerHeight * this.totalHeight;
-                const centerIndex = Math.round(scrollY / this.spacing);
+        const updatePositions = () => {
+            const scrollY = window.scrollY / window.innerHeight * this.totalHeight;
+            const centerIndex = Math.round(scrollY / this.spacing);
 
-                if (centerIndex >= 0 && centerIndex < this.imagePlanes.length) {
-                    const centerPlane = this.imagePlanes[centerIndex];
-                    const { date, name } = centerPlane.userData;
+            if (centerIndex >= 0 && centerIndex < this.imagePlanes.length) {
+                const centerPlane = this.imagePlanes[centerIndex];
+                const { date, name } = centerPlane.userData;
 
-                    if (name !== 'Default') {
-                        if (date && date.getFullYear() !== lastLoggedYear) {
-                            this.container.querySelector('.time-year').textContent = date.getFullYear();
-                            lastLoggedYear = date.getFullYear();
-                        } else if (['Future', 'Present', 'Past'].includes(name)) {
-                            this.container.querySelector('.time-year').textContent = name.toUpperCase();
-                            lastLoggedYear = null;
-                        }
+                if (name !== 'Default') {
+                    if (date && date.getFullYear() !== lastLoggedYear) {
+                        yearElement.textContent = date.getFullYear();
+                        lastLoggedYear = date.getFullYear();
+                    } else if (['Future', 'Present', 'Past'].includes(name)) {
+                        yearElement.textContent = name.toUpperCase();
+                        lastLoggedYear = null;
                     }
                 }
+            }
 
-                this.imagePlanes.forEach((plane, index) => {
-                    const yPos = index * this.spacing - scrollY;
-                    plane.position.y = yPos;
-                    plane.position.x = this.radius * Math.sin(yPos / this.totalHeight * Math.PI * 2);
-                    plane.position.z = this.radius * Math.cos(yPos / this.totalHeight * Math.PI * 2);
+            this.imagePlanes.forEach((plane, index) => {
+                const yPos = index * this.spacing - scrollY;
+                plane.position.y = yPos;
+                plane.position.x = this.radius * Math.sin(yPos / this.totalHeight * Math.PI * 2);
+                plane.position.z = this.radius * Math.cos(yPos / this.totalHeight * Math.PI * 2);
 
-                    const normalizedY = (yPos + this.totalHeight / 2) / this.totalHeight;
-                    plane.material.opacity = Math.max(0, Math.min(1, 1 - Math.abs(normalizedY - 0.5) * 2));
-                });
-                this.renderer.render(this.scene, this.camera);
-            },
+                const normalizedY = (yPos + this.totalHeight / 2) / this.totalHeight;
+                plane.material.opacity = Math.max(0, Math.min(1, 1 - Math.abs(normalizedY - 0.5) * 2));
+            });
+        };
+
+        ScrollTrigger.create({
+            trigger: this.timeBody,
+            start: 'top top',
+            end: `+=${totalLength}%`,
+            scrub: true,
+            pin: true,
+            onUpdate: updatePositions
         });
     }
+
 
     setupResizeListener() {
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
@@ -364,25 +367,25 @@ export default class Time {
     }
 
     setupRaycaster() {
-        this.raycaster = new THREE.Raycaster();
-        this.mouse = new THREE.Vector2();
-
         this.canvasContainer.addEventListener('mousemove', this.onMouseMove.bind(this), false);
         this.canvasContainer.addEventListener('click', this.onClick.bind(this), false);
     }
 
+
     onMouseMove(event) {
-        const rect = this.canvasContainer.getBoundingClientRect();
-        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        this.updateMousePosition(event);
         this.checkIntersection();
     }
 
     onClick(event) {
+        this.updateMousePosition(event);
+        this.checkIntersection(true);
+    }
+
+    updateMousePosition(event) {
         const rect = this.canvasContainer.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        this.checkIntersection(true);
     }
 
     checkIntersection(isClick = false) {
@@ -391,31 +394,22 @@ export default class Time {
 
         let hoveredOverSpecialImage = false;
 
-        if (intersects.length > 0) {
-            // Sort intersections by distance
-            intersects.sort((a, b) => a.distance - b.distance);
-
-            // Find the first visible intersection
-            for (let intersect of intersects) {
-                const plane = intersect.object;
-                if (plane.material.opacity > 0.1) {  // Consider planes with opacity > 0.1 as visible
-                    const { id, name } = plane.userData;
-                    console.log(name)
-                    if (isClick) {
-                        if(name && name !== 'Default') {
-                            this.tlShow = gsap.timeline();
-                            this.tlShow.to(`[data-name='${CSS.escape(name)}']`, {display: 'grid', zIndex: 3, duration: 0.5, ease: 'expo.out'})
-                                .to('.time-main-wrapper', {clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: 'expo.out'}, "<")
-                            this.lenis.stop()
-                        }
-                    } else {
-                        if (!['future', 'present', 'past', 'default-future', 'default-present', 'default-past'].includes(id)) {
-                            gsap.to(this.container, {cursor: 'pointer', duration: 0.1});
-                            hoveredOverSpecialImage = true;
-                        }
+        for (let intersect of intersects) {
+            const plane = intersect.object;
+            if (plane.material.opacity > 0.1) {
+                const { id, name } = plane.userData;
+                if (isClick) {
+                    if (name && name !== 'Default') {
+                        this.tlShow = gsap.timeline();
+                        this.tlShow.to(`[data-name='${CSS.escape(name)}']`, {display: 'grid', zIndex: 3, duration: 0.5, ease: 'expo.out'})
+                            .to('.time-main-wrapper', {clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: 'expo.out'}, "<");
+                        this.lenis.stop();
                     }
-                    break;
+                } else if (!['future', 'present', 'past', 'default-future', 'default-present', 'default-past'].includes(id)) {
+                    gsap.to(this.container, {cursor: 'pointer', duration: 0.1});
+                    hoveredOverSpecialImage = true;
                 }
+                break;
             }
         }
 
@@ -423,6 +417,7 @@ export default class Time {
             gsap.to(this.container, {cursor: 'default', duration: 0.1});
         }
     }
+
 }
 
 

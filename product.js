@@ -1,98 +1,111 @@
 import Swiper from 'swiper/bundle';
-// import Swiper and modules styles
 import 'swiper/css/bundle';
 import gsap from "gsap";
 
 export class Product {
-  constructor(container) {
-      this.container = container
-      this.faqs = [...this.container.querySelectorAll(".sp-faq-content")];
-      this.products = [...this.container.querySelectorAll('.merch-collection-item')];
-      this.init();
-  }
+    constructor(container) {
+        this.container = container;
+        this.faqs = [...this.container.querySelectorAll(".sp-faq-content")];
+        this.products = [...this.container.querySelectorAll('.merch-collection-item')];
+        this.selectWrappers = [...this.container.querySelectorAll('select')];
+        this.init();
+    }
 
-  init() {
-    this.initSwiper();
-    this.initFAQ();
-      this.addEventListeners()
-  }
+    init() {
+        this.initSwiper();
+        this.initImages();
+        this.initSelectListeners();
+        this.initFAQ();
+        this.addEventListeners();
+    }
 
-  initSwiper() {
+    initImages() {
+        this.initWrapper = this.container.querySelector('.initial-wrapper');
+        this.thumbsWrapper = this.container.querySelector('.is-thumb-hero');
+        this.mainSwiperList = this.container.querySelector('.product-list');
+        this.thumbSwiperList = this.container.querySelector('.product-thumb-list');
+        this.initClone = this.initWrapper.cloneNode(true);
+        this.thumbClone = this.thumbsWrapper.cloneNode(true);
+        this.mainSwiperList.prepend(this.initClone);
+        this.thumbSwiperList.prepend(this.thumbClone);
+        gsap.set('.product-wrapper', {opacity: 1});
+        gsap.set([this.initWrapper, this.thumbsWrapper], {display: 'none'});
+        gsap.set([this.initClone, this.thumbClone], {display: 'block'});
+        this.initSwiper();
+    }
 
+    initSwiper() {
+        const thumbSwiper = new Swiper(".product-thumb-wrapper", {
+            freeMode: true,
+            watchSlidesProgress: true,
+        });
 
-      const swiper = new Swiper(".product-thumb-wrapper", {
-          freeMode: true,
-          watchSlidesProgress: true,
-      });
-      const swiper2 = new Swiper(".product-wrapper", {
-          direction: "horizontal",
-          mousewheel: true,
-          keyboard: {
-              enabled: true,
-          },
-          thumbs: {
-              swiper: swiper,
-          },
-          breakpoints: {
-              // when window width is >= 320px
-              480: {
-                  direction: "horizontal",
-                  pagination: {
-                      el: ".swiper-pagination",
-                  },
-              }
-          }
-      });
+        new Swiper(".product-wrapper", {
+            direction: "horizontal",
+            mousewheel: true,
+            keyboard: {
+                enabled: true,
+            },
+            thumbs: {
+                swiper: thumbSwiper,
+            },
+            breakpoints: {
+                480: {
+                    direction: "horizontal",
+                    pagination: {
+                        el: ".swiper-pagination",
+                    },
+                }
+            }
+        });
+    }
 
+    initSelectListeners() {
+        this.selectWrappers.forEach(select => {
+            select.addEventListener('change', (event) => {
+                const selectedIndex = event.target.selectedIndex;
+                if (selectedIndex !== 0) {
+                    console.log('Initializing images for non-first option');
+                    this.initImages();
+                } else {
+                    console.log('First option selected, not initializing images');
+                }
+            });
+        });
+    }
 
-  }
-  initFAQ(){
-      let tlFAQ = gsap.timeline();
-      this.faqs.map((faq) => {
-          faq.addEventListener("click", (e) => {
-              let answer = faq.querySelector(".sp-faq-answer");
-              let accord = faq.querySelector(".accordion-vertical");
-              if (!faq.classList.contains("active")) {
-                  tlFAQ.to(answer, {
-                      height: "auto"
-                  });
-                  tlFAQ.to(
-                      accord,
-                      {
-                          scaleY: 0
-                      },
-                      "<"
-                  );
-                  faq.classList.add("active");
-              } else {
-                  tlFAQ.to(answer, {
-                      height: 0
-                  });
-                  tlFAQ.to(
-                      accord,
-                      {
-                          scaleY: 1
-                      },
-                      "<"
-                  );
-                  faq.classList.remove("active");
-              }
-          });
-      });
-  }
-    addEventListeners(){
+    initFAQ() {
+        this.faqs.forEach((faq) => {
+            faq.addEventListener("click", () => {
+                const answer = faq.querySelector(".sp-faq-answer");
+                const accord = faq.querySelector(".accordion-vertical");
+                const isActive = faq.classList.contains("active");
+
+                gsap.to(answer, {
+                    height: isActive ? 0 : "auto",
+                    duration: 0.3
+                });
+                gsap.to(accord, {
+                    scaleY: isActive ? 1 : 0,
+                    duration: 0.3
+                });
+
+                faq.classList.toggle("active");
+            });
+        });
+    }
+
+    addEventListeners() {
         this.products.forEach(product => {
-            let tlProductHover = gsap.timeline({paused: true});
-            tlProductHover.to(product.querySelector('.merch-visual-item:nth-child(1)'), {opacity:0, duration: 0.3})
-            tlProductHover.to(product.querySelector('.merch-visual-item:nth-child(2)'), {opacity:1, duration: 0.3}, "<0.1")
+            const mainVisual = product.querySelector('.merch-main-visual');
+            const visualWrapper = product.querySelector('.merch-visual-wrapper');
 
+            const tlProductHover = gsap.timeline({paused: true})
+                .to(mainVisual, {opacity: 0, duration: 0.3})
+                .to(visualWrapper, {opacity: 1, duration: 0.3}, "<0.1");
 
-            product.addEventListener('mouseenter', () => {
-                tlProductHover.play();
-            })
-            product.addEventListener('mouseleave', () => {
-                tlProductHover.reverse();
-            })
-        })
+            product.addEventListener('mouseenter', () => tlProductHover.play());
+            product.addEventListener('mouseleave', () => tlProductHover.reverse());
+        });
     }
 }

@@ -11,8 +11,8 @@ export class Shop{
     addEventListeners(){
         this.products.forEach(product => {
             let tlProductHover = gsap.timeline({paused: true});
-            tlProductHover.to(product.querySelector('.merch-visual-item:nth-child(1)'), {opacity:0, duration: 0.3})
-            tlProductHover.to(product.querySelector('.merch-visual-item:nth-child(2)'), {opacity:1, duration: 0.3}, "<0.1")
+            tlProductHover.to(product.querySelector('.merch-main-visual'), {opacity:0, duration: 0.3})
+            tlProductHover.to(product.querySelector('.merch-visual-wrapper'), {opacity:1, duration: 0.3}, "<0.1")
 
 
             product.addEventListener('mouseenter', () => {
@@ -22,10 +22,6 @@ export class Shop{
                 tlProductHover.reverse();
             })
         })
-    }
-
-    createTimelines(){
-
     }
 
 }
