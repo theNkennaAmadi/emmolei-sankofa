@@ -5,7 +5,6 @@ import {Home} from "./home.js";
 gsap.registerPlugin(ScrambleTextPlugin)
 
 class Loader {
-
     tlAnimateDots = gsap.timeline();
     tlReavealVisual = gsap.timeline({defaults: {duration: 1}});
     constructor(container){
@@ -18,7 +17,7 @@ class Loader {
 
     init(){
         //window.scroll(0,0)
-
+        gsap.set('.preloader-wrapper', {display: 'block'})
         gsap.set(['html', 'body'], {overflow: 'hidden'})
         this.animateDots();
     }
@@ -45,6 +44,7 @@ class Loader {
             },
             onComplete: ()=>{
                 this.addEventListeners()
+                gsap.set([this.container.querySelector("main"), this.container.querySelector('header')], {opacity: 1})
             }
         });
 

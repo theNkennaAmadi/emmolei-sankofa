@@ -20,6 +20,9 @@ export class Product {
     }
 
     initImages() {
+        this.productWrapper = this.container.querySelector('.product-wrapper');
+        this.productThumbWrapper = this.container.querySelector('.product-thumb-wrapper');
+
         this.initWrapper = this.container.querySelector('.initial-wrapper');
         this.thumbsWrapper = this.container.querySelector('.is-thumb-hero');
         this.mainSwiperList = this.container.querySelector('.product-list');
@@ -28,19 +31,19 @@ export class Product {
         this.thumbClone = this.thumbsWrapper.cloneNode(true);
         this.mainSwiperList.prepend(this.initClone);
         this.thumbSwiperList.prepend(this.thumbClone);
-        gsap.set('.product-wrapper', {opacity: 1});
+        gsap.set(this.productWrapper, {opacity: 1});
         gsap.set([this.initWrapper, this.thumbsWrapper], {display: 'none'});
         gsap.set([this.initClone, this.thumbClone], {display: 'block'});
         this.initSwiper();
     }
 
     initSwiper() {
-        const thumbSwiper = new Swiper(".product-thumb-wrapper", {
+        const thumbSwiper = new Swiper(this.productThumbWrapper, {
             freeMode: true,
             watchSlidesProgress: true,
         });
 
-        new Swiper(".product-wrapper", {
+        this.swiper = new Swiper(this.productWrapper, {
             direction: "horizontal",
             mousewheel: true,
             keyboard: {
@@ -48,14 +51,6 @@ export class Product {
             },
             thumbs: {
                 swiper: thumbSwiper,
-            },
-            breakpoints: {
-                480: {
-                    direction: "horizontal",
-                    pagination: {
-                        el: ".swiper-pagination",
-                    },
-                }
             }
         });
     }
@@ -67,6 +62,7 @@ export class Product {
                 if (selectedIndex !== 0) {
                     console.log('Initializing images for non-first option');
                     this.initImages();
+                    gsap.to(this.mainSwiperList, {x:0})
                 } else {
                     console.log('First option selected, not initializing images');
                 }
@@ -103,6 +99,8 @@ export class Product {
             const tlProductHover = gsap.timeline({paused: true})
                 .to(mainVisual, {opacity: 0, duration: 0.3})
                 .to(visualWrapper, {opacity: 1, duration: 0.3}, "<0.1");
+
+
 
             product.addEventListener('mouseenter', () => tlProductHover.play());
             product.addEventListener('mouseleave', () => tlProductHover.reverse());

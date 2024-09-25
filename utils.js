@@ -19,7 +19,11 @@ export class Nav{
         this.initSplitting();
         this.hoverAnimation();
         this.showNavMobile();
+
         let bgCol = window.getComputedStyle(this.header).backgroundColor;
+        if(bgCol === 'rgba(0, 0, 0, 0)'){
+            bgCol = window.getComputedStyle(document.querySelector('body')).backgroundColor;
+        }
         mm.add("(max-width: 479px)", () => {
             gsap.set('.nav-links-wrapper', {backgroundColor: bgCol});
         });

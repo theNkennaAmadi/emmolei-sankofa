@@ -43,6 +43,7 @@ export class Home {
         this.initScrollAnimation();
         this.getColors();
         gsap.set('.preloader-wrapper', {display: 'none'})
+        gsap.to([this.container.querySelector("main"), this.container.querySelector('header')], {opacity: 1})
         gsap.to('.loader-img', {scale:1,clipPath: 'circle(80% at 50% 50%)', ease: "expo.out", duration: 2})
     }
 

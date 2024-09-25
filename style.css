@@ -95,3 +95,9 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+
+
+[data-barba-namespace="home"] main, [data-barba-namespace="home"] header{
+  opacity: 0;
+}
