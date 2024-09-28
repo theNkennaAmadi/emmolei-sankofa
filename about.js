@@ -64,15 +64,13 @@ export class About{
             filter: 'blur(80px)',
             autoAlpha: 0,
             stagger: {
-                amount: 6
+                amount: 3
             },
             scrollTrigger: {
                 trigger: document.querySelector('.about-end-quote-wrapper')
             }
         })
     }
-
-
 
 
     displayVideo(){

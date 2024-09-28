@@ -4,40 +4,39 @@ import lottie from 'lottie-web';
 export class Videos {
     constructor(container) {
         this.container = container;
-        this.apiKey = 'AIzaSyALqidJRST-mo-pMbtXZit-GOtfB6j0pb0';
-        this.videoItems = [...this.container.querySelectorAll('.videos-item')];
-        this.playlistIds = this.videoItems.map((item) => this.getYouTubePlaylistId(item.getAttribute('data-playlist-id')));
-        console.log(this.playlistIds);
+        this.apiKey = 'AIzaSyALqidJRST-mo-pMbtXZit-GOtfB6j0pb0'; // Replace with your actual API key securely
+        this.videoItems = Array.from(this.container.querySelectorAll('.videos-item'));
+        this.playlistIds = this.videoItems.map(item => this.getYouTubePlaylistId(item.getAttribute('data-playlist-id')));
         this.videoListWrapper = this.container.querySelector('.videos-list-wrapper');
         this.videoContentContainer = this.container.querySelector('.videos-c');
         this.videoContentGrid = this.container.querySelector('.videos-content-grid');
         this.backButton = this.container.querySelector('.video-content-back-btn');
         this.currentVideo = null;
-        this.videoData = new Map(); // Store video data
+        this.videoData = new Map();
 
-        this.init().then(() =>
-            window.setTimeout(() => {
-                this.revealContent()
+        this.init().then(() => {
+            setTimeout(() => {
+                this.revealContent();
                 this.addEventListeners();
-            }, 100)
-        );
-
+            }, 50);
+        });
     }
 
     getYouTubePlaylistId(url) {
-        // Create a URL object from the input string
-        const urlObj = new URL(url);
-        // Use URLSearchParams to get the value of the 'list' parameter
-        const playlistId = urlObj.searchParams.get('list');
-        // Return the playlist ID if it exists, otherwise return null
-        return playlistId ? playlistId : null;
+        try {
+            const urlObj = new URL(url);
+            return urlObj.searchParams.get('list') || null;
+        } catch (error) {
+            console.error('Invalid URL:', url);
+            return null;
+        }
     }
 
     async init() {
         try {
             for (const [index, playlistId] of this.playlistIds.entries()) {
+                if (!playlistId) continue;
                 const playlistVideos = await this.fetchPlaylistVideos(playlistId);
-               // console.log(playlistVideos);
                 this.renderVideos(playlistVideos, this.videoItems[index]);
             }
         } catch (error) {
@@ -47,7 +46,7 @@ export class Videos {
 
     async fetchPlaylistVideos(playlistId) {
         const baseUrl = 'https://www.googleapis.com/youtube/v3/playlistItems';
-        const maxResults = 50; // Maximum number of results per request
+        const maxResults = 50;
         let pageToken = '';
         let playlistVideos = [];
 
@@ -60,7 +59,7 @@ export class Videos {
                 playlistVideos = playlistVideos.concat(data.items);
             }
 
-            pageToken = data.nextPageToken;
+            pageToken = data.nextPageToken || '';
         } while (pageToken);
 
         return playlistVideos;
@@ -68,34 +67,34 @@ export class Videos {
 
     renderVideos(videos, container) {
         const wrapper = container.querySelector('.videos-playlist-wrapper');
-        wrapper.innerHTML = ''; // Clear existing content
+        wrapper.innerHTML = '';
 
         videos.forEach(video => {
-            const videoSnippet = video.snippet;
-            const videoTitle = videoSnippet.title;
-            const thumbnailUrl = videoSnippet.thumbnails?.maxres?.url || videoSnippet.thumbnails?.standard?.url;
-            const videoId = videoSnippet.resourceId.videoId;
+            const { snippet } = video;
+            const videoTitle = snippet.title;
+            const thumbnailUrl = snippet.thumbnails?.maxres?.url || snippet.thumbnails?.standard?.url || snippet.thumbnails?.default?.url;
+            const videoId = snippet.resourceId.videoId;
 
             // Store video data
-            this.videoData.set(videoId, videoSnippet);
+            this.videoData.set(videoId, snippet);
 
-            const videoItemHtml = `
-                <div class="videos-playlist-item" data-video-id="${videoId}">
-                    <div class="video-playlist-img">
-                        <img src="${thumbnailUrl}" loading="lazy" alt="${videoTitle}">
-                        <div class="lottie-block">
-                            <div class="lottie-content"></div>
-                        </div>
+            const videoItem = document.createElement('div');
+            videoItem.classList.add('videos-playlist-item');
+            videoItem.dataset.videoId = videoId;
+            videoItem.innerHTML = `
+                <div class="video-playlist-img">
+                    <img src="${thumbnailUrl}" loading="lazy" alt="${videoTitle}">
+                    <div class="lottie-block">
+                        <div class="lottie-content"></div>
                     </div>
-                    <h2 class="video-playlist-title">${videoTitle}</h2>
                 </div>
+                <h2 class="video-playlist-title">${videoTitle}</h2>
             `;
-            wrapper.insertAdjacentHTML('beforeend', videoItemHtml);
+            wrapper.appendChild(videoItem);
         });
 
         this.initLottieAnimations(wrapper);
     }
-
 
     initLottieAnimations(wrapper) {
         const lottieBlocks = wrapper.querySelectorAll('.lottie-content');
@@ -108,14 +107,14 @@ export class Videos {
                 path: 'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66c320b8a2a9fc2b4e18b47a_yj3hYNld6N.json'
             });
 
-            // Add event listeners or additional logic for playing the animation
-            block.closest('.video-playlist-img').addEventListener('mouseenter', () => {
-                animation.setDirection(1)
+            const parentImage = block.closest('.video-playlist-img');
+            parentImage.addEventListener('mouseenter', () => {
+                animation.setDirection(1);
                 animation.play();
             });
 
-            block.closest('.video-playlist-img').addEventListener('mouseleave', () => {
-                animation.setDirection(-1)
+            parentImage.addEventListener('mouseleave', () => {
+                animation.setDirection(-1);
                 animation.stop();
             });
         });
@@ -124,14 +123,18 @@ export class Videos {
     revealContent() {
         gsap.to(this.videoListWrapper, {
             autoAlpha: 1,
-            duration: 2,
+            duration: 0.5,
             ease: "power2.out",
         });
 
-        this.videoItems.forEach((item, index) => {
-            let tl = gsap.timeline();
-            tl.from(item.querySelector('h1'), {yPercent: 100, duration: 0.6, ease: "power2.out"})
-                .from(item.querySelectorAll('.videos-playlist-item'), {yPercent: 110, opacity: 1, stagger: {amount: 0.3, ease: "expo.out"}})
+        this.videoItems.forEach(item => {
+            gsap.timeline()
+                .from(item.querySelector('h1'), { yPercent: 100, duration: 0.6, ease: "power2.out" })
+                .from(item.querySelectorAll('.videos-playlist-item'), {
+                    yPercent: 110,
+                    opacity: 0,
+                    stagger: { amount: 0.2, ease: "expo.out" }
+                }, "<");
         });
     }
 
@@ -157,12 +160,12 @@ export class Videos {
         }
 
         const videoTitle = videoData.title;
-        const channelTitle = videoData.videoOwnerChannelTitle;
+        const channelTitle = videoData.videoOwnerChannelTitle || videoData.channelTitle;
         const description = videoData.description;
 
         // Update content
         this.videoContentGrid.querySelector('h1').textContent = videoTitle;
-        this.videoContentGrid.querySelector('.video-content-channel-title').textContent = channelTitle;
+        this.videoContentGrid.querySelector('.video-content-channel-title').textContent = channelTitle || '';
 
         // Update description with preserved formatting and clickable links
         const descriptionElement = this.videoContentGrid.querySelector('.video-content-description');
@@ -184,7 +187,6 @@ export class Videos {
         this.currentVideo = videoContentMedia.querySelector('iframe');
     }
 
-
     closeVideo() {
         if (this.currentVideo) {
             // Stop video playback
@@ -205,19 +207,16 @@ export class Videos {
     }
 
     formatDescription(description) {
-        // Split the description into lines
+        if (!description) return '';
         const lines = description.split('\n');
 
-        // Process each line separately
         const formattedLines = lines.map(line => {
-            // Make URLs clickable and underlined
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             return line.replace(urlRegex, url =>
                 `<a href="${url}" target="_blank" style="text-decoration: underline;">${url}</a>`
             );
         });
 
-        // Join the lines back together with <br> tags
         return formattedLines.join('<br>');
     }
 }

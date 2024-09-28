@@ -10,6 +10,8 @@ CustomEase.create('cubic', '.83,0,.17,1');
 
 export default class Time {
     constructor(container, lenis) {
+        this.initStartTime = performance.now();
+        console.log('Time initialization started');
         this.container = container;
         this.lenis = lenis;
         this.timeBody = container.closest('body');
@@ -111,10 +113,11 @@ export default class Time {
     }
 
     init() {
+        const initStartTime = performance.now();
         gsap.fromTo(
             this.canvasContainer,
             { opacity: 0 },
-            { opacity: 1, duration: 1, ease: 'expo.in' }
+            { opacity: 1, duration: 0.8, ease: 'expo.in' }
         );
         this.setupRenderer();
         this.createImagePlanes();
@@ -147,6 +150,10 @@ export default class Time {
         });
 
         this.initializeVideoEmbeds();
+
+        // Log total initialization time
+        const totalInitTime = performance.now() - this.initStartTime;
+        console.log(`Total Time initialization completed in ${totalInitTime.toFixed(2)}ms`);
     }
 
     setupHtmx(item) {
