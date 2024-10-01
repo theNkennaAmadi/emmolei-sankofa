@@ -26,6 +26,7 @@ export class Music {
         this.currentCard = null;
         this.currentHowl = null;
         this.updateInterval = null;
+        this.currentAlbum = null;
         this.trackName = container.querySelector('#track-name');
         this.init();
     }
@@ -205,6 +206,7 @@ export class Music {
 
         this.currentTrackIndex = index;
         this.currentCard = card;
+        this.currentAlbum = card;
         const name = card.querySelector(`.track-item:nth-of-type(${index + 1}) p:nth-of-type(2)`).textContent;
 
         gsap.to('.player-info', { opacity: 1, duration: 0.5 });
@@ -261,7 +263,14 @@ export class Music {
     }
 
     togglePlayPause(card) {
-        if (this.currentHowl) {
+        // Check if we're switching to a new album
+        if (this.currentAlbum !== card) {
+            this.stopMusic();
+            this.currentAlbum = card;
+            this.currentTrackIndex = 0;
+        }
+
+        if (this.currentHowl && this.currentCard === card) {
             if (this.currentHowl.playing()) {
                 this.currentHowl.pause();
                 clearInterval(this.updateInterval);
@@ -271,6 +280,7 @@ export class Music {
                 this.currentHowl.play();
                 this.updateTrackInfo(card);
                 this.animatePlayIcon(card, true);
+                gsap.to('.player-info', { opacity: 1, duration: 0.5 });
             }
         } else {
             const firstTrack = card.querySelector('.track-item');
