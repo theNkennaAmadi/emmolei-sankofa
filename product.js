@@ -60,11 +60,11 @@ export class Product {
             select.addEventListener('change', (event) => {
                 const selectedIndex = event.target.selectedIndex;
                 if (selectedIndex !== 0) {
-                    console.log('Initializing images for non-first option');
+                   // console.log('Initializing images for non-first option');
                     this.initImages();
                     gsap.to(this.mainSwiperList, {x:0})
                 } else {
-                    console.log('First option selected, not initializing images');
+                    //console.log('First option selected, not initializing images');
                 }
             });
         });

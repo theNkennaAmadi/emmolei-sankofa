@@ -11,7 +11,7 @@ CustomEase.create('cubic', '.83,0,.17,1');
 export default class Time {
     constructor(container, lenis) {
         this.initStartTime = performance.now();
-        console.log('Time initialization started');
+       // console.log('Time initialization started');
         this.container = container;
         this.lenis = lenis;
         this.timeBody = container.closest('body');
@@ -153,7 +153,7 @@ export default class Time {
 
         // Log total initialization time
         const totalInitTime = performance.now() - this.initStartTime;
-        console.log(`Total Time initialization completed in ${totalInitTime.toFixed(2)}ms`);
+       // console.log(`Total Time initialization completed in ${totalInitTime.toFixed(2)}ms`);
     }
 
     setupHtmx(item) {

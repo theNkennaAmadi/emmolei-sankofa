@@ -82,6 +82,8 @@ barba.hooks.after((data) => {
     ScrollTrigger.refresh();
 });
 
+let musicInstance = null;
+
 // Barba.js initialization
 barba.init({
     preventRunning: true,
@@ -101,7 +103,7 @@ barba.init({
         {
             namespace: "music",
             afterEnter(data) {
-                new Music(data.next.container);
+                musicInstance = new Music(data.next.container);
                 new Nav(data.next.container);
             },
         },
@@ -157,13 +159,6 @@ barba.init({
             namespace: "404",
             afterEnter() {},
         },
-        {
-            namespace: "test",
-            afterEnter(data) {
-                console.log('test');
-                new Time(data.next.container);
-            },
-        }
     ],
     transitions: [
         {
@@ -177,6 +172,7 @@ barba.init({
                 ScrollTrigger.clearScrollMemory();
                 ScrollTrigger.getAll().forEach((t) => t.kill());
                 ScrollTrigger.refresh();
+                musicInstance && musicInstance.stopMusic();
             },
             async enter(data) {
                 return createTransitionTimeline(data.current.container, data.next.container);
@@ -184,3 +180,5 @@ barba.init({
         }
     ]
 });
+
+

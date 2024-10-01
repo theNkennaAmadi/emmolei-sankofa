@@ -281,6 +281,17 @@ export class Music {
         }
     }
 
+    stopMusic() {
+        if (this.currentHowl) {
+            this.currentHowl.stop();
+            clearInterval(this.updateInterval);
+        }
+        gsap.to('.player-info', { opacity: 0, duration: 0.5 });
+        if (this.currentCard) {
+            this.animatePlayIcon(this.currentCard, false);
+        }
+    }
+
     playNextTrack() {
         const trackItems = this.currentCard.querySelectorAll('.track-item');
         this.currentTrackIndex = (this.currentTrackIndex === trackItems.length - 1) ? 0 : this.currentTrackIndex + 1;
