@@ -9,6 +9,9 @@ export class Home {
     constructor(container) {
         this.container = container;
         this.initElements();
+        //get the variable --primary from the CSS
+        this.primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+        this.textColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-bg').trim();
         this.init();
     }
 
@@ -35,7 +38,7 @@ export class Home {
 
     async init() {
         await this.initSplitting();
-        await this.getColors();
+       // await this.getColors();
         this.initScrollAnimation();
 
         gsap.set('.preloader-wrapper', { display: 'none' });
@@ -111,7 +114,7 @@ export class Home {
 
         const tlLeave = gsap.timeline({ paused: true })
             .to(this.questionMark, { opacity: 1 })
-            .fromTo(this.container, { color: '#0B8457' }, { color: '#efe5cf' }, "<");
+            .fromTo(this.container, { color: this.primaryColor }, { color: this.textColor },  "<");
 
         ScrollTrigger.create({
             trigger: this.homeWorks,
@@ -150,7 +153,7 @@ export class Home {
 
         const tlAbout = gsap.timeline({ paused: true })
             .to(this.questionMark, { scale: 1, fontSize: '35vw' })
-            .fromTo(['main', 'header'], { color: 'inherit' }, { color: '#0B8457' }, "<")
+            .fromTo(['main', 'header'], { color: 'inherit' }, { color: this.primaryColor }, "<")
             .to(this.preloaderContent, { opacity: 0 }, "<");
 
         ScrollTrigger.create({
