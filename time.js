@@ -87,10 +87,9 @@ export default class Time {
             (item) => item.date < today && item.date.getFullYear() < currentYear
         );
 
-        console.log(currentYearItems);
 
         this.defaultImage =
-            'https://cdn.prod.website-files.com/6634c23145c0a86a4c0bda23/699f691cb4a54d0218d33025_nothing-em.webp';
+            'https://cdn.prod.website-files.com/6634c23145c0a86a4c0bda23/699f6b96f6d6f4c5e388b905_nothing-2.webp';
         this.futureURL =
             'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2b1434ac19b0be4ab_future.webp';
         this.presentURL =
@@ -179,19 +178,19 @@ export default class Time {
         this.canvasContainer.appendChild(this.renderer.domElement);
     }
 
-    getContainerBackgroundColor() {
+    getContainerTextColor() {
         const el = this.canvasContainer || this.container;
-        if (!el) return '#242424';
+        if (!el) return 'rgba(255, 255, 255, 0.87)';
         let node = el;
         while (node && node !== document.body) {
-            const bg = getComputedStyle(node).backgroundColor;
-            if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
-                return bg;
+            const color = getComputedStyle(node).color;
+            if (color && color !== 'rgba(0, 0, 0, 0)' && color !== 'transparent') {
+                return color;
             }
             node = node.parentElement;
         }
-        const rootBg = getComputedStyle(document.documentElement).backgroundColor;
-        return rootBg && rootBg !== 'rgba(0, 0, 0, 0)' ? rootBg : '#242424';
+        const rootColor = getComputedStyle(document.documentElement).color;
+        return rootColor && rootColor !== 'rgba(0, 0, 0, 0)' ? rootColor : 'rgba(255, 255, 255, 0.87)';
     }
 
     createImagePlanes() {
@@ -214,7 +213,7 @@ export default class Time {
                         canvas.width = w;
                         canvas.height = h;
                         const ctx = canvas.getContext('2d');
-                        ctx.fillStyle = this.getContainerBackgroundColor();
+                        ctx.fillStyle = this.getContainerTextColor();
                         ctx.fillRect(0, 0, w, h);
                         ctx.drawImage(img, 0, 0);
                         texture.dispose();
