@@ -87,6 +87,8 @@ export default class Time {
             (item) => item.date < today && item.date.getFullYear() < currentYear
         );
 
+        console.log(currentYearItems);
+
         this.defaultImage =
             'https://cdn.prod.website-files.com/6634c23145c0a86a4c0bda23/699f691cb4a54d0218d33025_nothing-em.webp';
         this.futureURL =
