@@ -88,7 +88,7 @@ export default class Time {
         );
 
         this.defaultImage =
-            'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/669809a3d62ea03f04364464_nothing.webp';
+            'https://cdn.prod.website-files.com/6634c23145c0a86a4c0bda23/699f691cb4a54d0218d33025_nothing-em.webp';
         this.futureURL =
             'https://uploads-ssl.webflow.com/6634c23145c0a86a4c0bda23/66ab8cf2b1434ac19b0be4ab_future.webp';
         this.presentURL =
@@ -177,8 +177,24 @@ export default class Time {
         this.canvasContainer.appendChild(this.renderer.domElement);
     }
 
+    getContainerBackgroundColor() {
+        const el = this.canvasContainer || this.container;
+        if (!el) return '#242424';
+        let node = el;
+        while (node && node !== document.body) {
+            const bg = getComputedStyle(node).backgroundColor;
+            if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+                return bg;
+            }
+            node = node.parentElement;
+        }
+        const rootBg = getComputedStyle(document.documentElement).backgroundColor;
+        return rootBg && rootBg !== 'rgba(0, 0, 0, 0)' ? rootBg : '#242424';
+    }
+
     createImagePlanes() {
         const textureLoader = new THREE.TextureLoader();
+        const defaultIds = ['default-future', 'default-present', 'default-past'];
         const loadTexture = (imageData) => {
             return new Promise((resolve) => {
                 textureLoader.load(imageData.url, (texture) => {
@@ -187,7 +203,29 @@ export default class Time {
                     texture.magFilter = THREE.LinearFilter;
                     texture.format = THREE.RGBAFormat;
                     texture.generateMipmaps = false;
-                    resolve({ texture, imageData });
+
+                    if (defaultIds.includes(imageData.id)) {
+                        const img = texture.image;
+                        const w = img.width;
+                        const h = img.height;
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = this.getContainerBackgroundColor();
+                        ctx.fillRect(0, 0, w, h);
+                        ctx.drawImage(img, 0, 0);
+                        texture.dispose();
+                        const canvasTexture = new THREE.CanvasTexture(canvas);
+                        canvasTexture.colorSpace = THREE.SRGBColorSpace;
+                        canvasTexture.minFilter = THREE.LinearFilter;
+                        canvasTexture.magFilter = THREE.LinearFilter;
+                        canvasTexture.format = THREE.RGBAFormat;
+                        canvasTexture.generateMipmaps = false;
+                        resolve({ texture: canvasTexture, imageData });
+                    } else {
+                        resolve({ texture, imageData });
+                    }
                 });
             });
         };
